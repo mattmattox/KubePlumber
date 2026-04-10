@@ -19,5 +19,14 @@
 	},
     "workspaceFolder": "/workspace",
 	"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,Z",
-	"containerUser": "vscode"
+	"containerUser": "vscode",
+
+	"containerEnv": {
+		"GIT_USER": "${localEnv:GIT_USER}",
+		"GIT_EMAIL": "${localEnv:GIT_EMAIL}"
+  	},
+
+    "postStartCommand": "git config --global user.name \"$GIT_USER\" && git config --global user.email \"$GIT_EMAIL\""
+
+
 }

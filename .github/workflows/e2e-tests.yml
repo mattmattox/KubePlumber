@@ -1,0 +1,42 @@
+name: End to End Testing
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    steps:  
+    - uses: actions/checkout@v5
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Install up K3d
+      run: curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+
+    - name: Stand up K3s Cluster
+      run: k3d cluster create test-cluster -a 3
+
+    - name: Set up Go
+      uses: actions/setup-go@v6
+      with:
+          go-version: 1.23.4
+
+    - name: Run Go tests
+      run: go test -v ./...
+
+    - name: Create YAML file
+      run: wget https://raw.githubusercontent.com/David-VTUK/KubePlumber/refs/heads/main/config.yaml
+
+    - name: Run Application
+      run:  | 
+        go run ./cmd/main.go
+        if [ $? -eq 1 ]; then
+          echo "Application exited with code 1, failing the job."
+          exit 1
+        fi
